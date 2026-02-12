@@ -26,7 +26,7 @@ DataPull is a self-service Distributed ETL tool to join and transform data from 
 * Build a local docker image for running spark as a dockerised server
   ```shell script
   cd ./datapull
-  docker build -f ./core/docker_spark_server/Dockerfile -t expedia/spark2.4.8-scala2.11-hadoop2.10.1 ./core/docker_spark_server
+  docker build -f ./core/docker_spark_server/Dockerfile -t expedia/spark3.5.1-scala2.12-hadoop3.3.6 ./core/docker_spark_server
   ```
 * Build the Scala JAR from within the `core` folder
   ```shell script
@@ -47,8 +47,8 @@ DataPull is a self-service Distributed ETL tool to join and transform data from 
      -w /core \
      -it \
      --rm \
-     expedia/spark2.4.8-scala2.11-hadoop2.10.1 spark-submit \
-        --packages org.apache.spark:spark-sql_2.11:2.4.8,org.apache.spark:spark-avro_2.11:2.4.8,org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.8 \
+     expedia/spark3.5.1-scala2.12-hadoop3.3.6 spark-submit \
+        --packages org.apache.spark:spark-sql_2.12:3.5.1,org.apache.spark:spark-avro_2.12:3.5.1,org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 \
         --deploy-mode client \
         --class core.DataPull \
         target/DataMigrationFramework-1.0-SNAPSHOT-jar-with-dependencies.jar src/main/resources/Samples/Input_Sample_filesystem-to-filesystem.json local

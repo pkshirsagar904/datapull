@@ -63,6 +63,18 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer, StringBuilder}
 class DataFrameFromTo(appConfig: AppConfig, pipeline: String) extends Serializable {
   val helper = new Helper(appConfig)
 
+  private def ensureSftpConnectorAvailable(): Unit = {
+    try {
+      Class.forName("com.springml.spark.sftp.DefaultSource")
+    } catch {
+      case _: ClassNotFoundException =>
+        throw new UnsupportedOperationException(
+          "SFTP support requires connector 'com.springml:spark-sftp' on the Spark classpath. " +
+            "No compatible Scala 2.12 artifact was resolved from the configured repositories."
+        )
+    }
+  }
+
   def fileToDataFrame(filePath: String, fileFormat: String, delimiter: String, charset: String, mergeSchema: Boolean = false, sparkSession: org.apache.spark.sql.SparkSession, isS3: Boolean = false, secretstore: String, isSFTP: Boolean = false, login: String, host: String, password: String, pemFilePath: String, awsEnv: String, vaultEnv: String, isStream: Boolean = false, addlSparkOptions: Option[JSONObject] = None, filePrefix: Option[String] = None, schema: Option[StructType] = None): org.apache.spark.sql.DataFrame = {
 
     if (filePath == null && fileFormat == null && delimiter == null && charset == null && sparkSession == null && login == null && host == null && password == null) {
@@ -119,6 +131,7 @@ class DataFrameFromTo(appConfig: AppConfig, pipeline: String) extends Serializab
     }
 
     if (isSFTP) {
+      ensureSftpConnectorAvailable()
       createOrReplaceTempViewOnDF(sparkSession.read
         .format("com.springml.spark.sftp")
         .options(sparkOptions)
@@ -258,10 +271,11 @@ class DataFrameFromTo(appConfig: AppConfig, pipeline: String) extends Serializab
     var sparkOptions: Map[String, String] = Map.empty[String, String]
 
     if (isSFTP) {
+      ensureSftpConnectorAvailable()
       sparkOptions = sparkOptions ++ Map(
         "host" -> host,
-        "username" -> login,
-        (if (pemFilePath == "") "password" else "pem") -> (if (pemFilePath == "") password else pemFilePath),
+        "username" -> vaultLogin,
+        (if (pemFilePath == "") "password" else "pem") -> (if (pemFilePath == "") vaultPassword else pemFilePath),
         "fileType" -> fileFormat
       )
       if (!addlSparkOptions.isEmpty) {
@@ -1456,4 +1470,3 @@ class DataFrameFromTo(appConfig: AppConfig, pipeline: String) extends Serializab
 
   }
 }
-

@@ -21,7 +21,6 @@ import java.nio.ByteBuffer
 import java.time._
 import java.util.{Scanner, UUID}
 
-import com.datastax.driver.core.utils.UUIDs
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.mongodb.spark.sql.fieldTypes.Binary
@@ -355,9 +354,7 @@ object DataPull {
   }
 
   def uuid(): String = {
-
-    UUIDs.timeBased().toString
-
+    UUID.randomUUID().toString
   }
 
   def validateUUID(uuidString: String): Boolean = {

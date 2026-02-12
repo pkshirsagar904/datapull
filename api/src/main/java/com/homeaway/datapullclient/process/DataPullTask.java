@@ -37,6 +37,8 @@ public class DataPullTask implements Runnable {
 
     //private Logger log = LoggerManag;
     private static final String MAIN_CLASS = "core.DataPull";
+    private static final String SPARK_PACKAGES =
+            "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1,org.apache.spark:spark-avro_2.12:3.5.1";
 
     private final String taskId;
 
@@ -204,7 +206,7 @@ public class DataPullTask implements Runnable {
     private List<String> prepareSparkSubmitParams(final String SparkSubmitParams) {
         final List<String> sparkSubmitParamsList = new ArrayList<>();
         String[] sparkSubmitParamsArray = null;
-        if (SparkSubmitParams != "") {
+        if (SparkSubmitParams != null && !SparkSubmitParams.isEmpty()) {
             sparkSubmitParamsArray = SparkSubmitParams.split("\\s+");
 
             sparkSubmitParamsList.add("spark-submit");
@@ -224,7 +226,7 @@ public class DataPullTask implements Runnable {
             sparkSubmitParamsList = (ArrayList<String>) this.prepareSparkSubmitParams(sparkSubmitParams);
         } else {
             List<String> sparkBaseParams = new ArrayList<>();
-            sparkBaseParams.addAll(toList(new String[]{"spark-submit", "--conf", "spark.default.parallelism=3", "--conf", "spark.storage.blockManagerSlaveTimeoutMs=1200s", "--conf", "spark.executor.heartbeatInterval=900s", "--conf", "spark.driver.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--conf", "spark.executor.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--packages", "org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.4,org.apache.spark:spark-avro_2.11:2.4.4", "--class", DataPullTask.MAIN_CLASS, jarPath}));
+            sparkBaseParams.addAll(toList(new String[]{"spark-submit", "--conf", "spark.default.parallelism=3", "--conf", "spark.network.timeout=1200s", "--conf", "spark.executor.heartbeatInterval=900s", "--conf", "spark.driver.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--conf", "spark.executor.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--packages", SPARK_PACKAGES, "--class", DataPullTask.MAIN_CLASS, jarPath}));
             sparkSubmitParamsList.addAll(sparkBaseParams);
         }
 
@@ -496,7 +498,7 @@ public class DataPullTask implements Runnable {
             sparkSubmitParamsListOnExistingCluster = this.prepareSparkSubmitParams(sparkSubmitParams);
         } else {
             List<String> sparkBaseParams = new ArrayList<>();
-            sparkBaseParams.addAll(toList(new String[]{"spark-submit", "--conf", "spark.default.parallelism=3", "--conf", "spark.storage.blockManagerSlaveTimeoutMs=1200s", "--conf", "spark.executor.heartbeatInterval=900s", "--conf", "spark.driver.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--conf", "spark.executor.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--packages", "org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.4,org.apache.spark:spark-avro_2.11:2.4.4", "--class", DataPullTask.MAIN_CLASS, jarPath}));
+            sparkBaseParams.addAll(toList(new String[]{"spark-submit", "--conf", "spark.default.parallelism=3", "--conf", "spark.network.timeout=1200s", "--conf", "spark.executor.heartbeatInterval=900s", "--conf", "spark.driver.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--conf", "spark.executor.extraJavaOptions=-Djavax.net.ssl.trustStore=/etc/pki/java/cacerts/ -Djavax.net.ssl.trustStorePassword=changeit", "--packages", SPARK_PACKAGES, "--class", DataPullTask.MAIN_CLASS, jarPath}));
             sparkSubmitParamsListOnExistingCluster.addAll(sparkBaseParams);
         }
 

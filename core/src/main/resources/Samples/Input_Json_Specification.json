@@ -41,7 +41,7 @@
         "isstream": false,
         "comment_sparkoptions": "optional set of spark.cassandra options. these options will override equivalent parameters if both are provided. For example, delimiter specificed in sparkoptions will override delimiter specified (and deprecated) above",
         "sparkoptions": {
-          "comment_checkpointLocation": "For some output sinks where the end-to-end fault-tolerance can be guaranteed, specify the location where the system will write all the checkpoint information. This should be a directory in an HDFS-compatible fault-tolerant file system. ref https://spark.apache.org/docs/2.4.8/structured-streaming-programming-guide.html#recovering-from-failures-with-checkpointing",
+          "comment_checkpointLocation": "For some output sinks where the end-to-end fault-tolerance can be guaranteed, specify the location where the system will write all the checkpoint information. This should be a directory in an HDFS-compatible fault-tolerant file system. ref https://spark.apache.org/docs/3.5.1/structured-streaming-programming-guide.html#recovering-from-failures-with-checkpointing",
           "checkpointLocation": "s3a://S3BUCKET_AND_PATH or /LOCALHDFSPATH",
           "comment_delimiter": "Optional, defaulted to comma(,). Use \\t for tab-delimited files. Applies only for csv fileformat",
           "delimiter": "\t"
@@ -332,9 +332,9 @@
         "keyformat": "avro",
         "comment_valueformat": "Optional, by default will be avro. Can also be string. If string is chosen, the value field should be of type string. If the field is a complex data type like a struct, you can use the to_json() spark sql command.",
         "valueformat": "avro",
-        "comment_streamwatermarkfield": "Optional, defaults to timestamp. This attribute is not used unless the streamwatermarkdelay attribute too is specified. This provides the first argument in structured spak streaming's .withWatermark() function. More details at https://spark.apache.org/docs/2.4.6/structured-streaming-programming-guide.html#policy-for-handling-multiple-watermarks",
+        "comment_streamwatermarkfield": "Optional, defaults to timestamp. This attribute is not used unless the streamwatermarkdelay attribute too is specified. This provides the first argument in structured spak streaming's .withWatermark() function. More details at https://spark.apache.org/docs/3.5.1/structured-streaming-programming-guide.html#policy-for-handling-multiple-watermarks",
         "streamwatermarkfield": "timestamp",
-        "comment_streamwatermakdelay": "Optional. This provides the second argument in structured spak streaming's .withWatermark() function. More details at https://spark.apache.org/docs/2.4.6/structured-streaming-programming-guide.html#policy-for-handling-multiple-watermarks",
+        "comment_streamwatermakdelay": "Optional. This provides the second argument in structured spak streaming's .withWatermark() function. More details at https://spark.apache.org/docs/3.5.1/structured-streaming-programming-guide.html#policy-for-handling-multiple-watermarks",
         "streamwatermarkdelay": "1 hour",
         "comment_kafkaconnectmongodboptions": "Optional. Json Object that allows easier reading of Kafka events produced by MongoDB Kafka source connector https://docs.mongodb.com/kafka-connector/master/kafka-source/",
         "kafkaconnectmongodboptions": {
