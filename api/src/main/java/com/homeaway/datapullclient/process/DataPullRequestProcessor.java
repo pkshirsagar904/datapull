@@ -74,6 +74,7 @@ public class DataPullRequestProcessor implements DataPullClientService {
     private static final String PIPELINE_NAME_DELIMITER = "-";
     private static final int POOL_SIZE = 10;
     private static final String EMR = "emr";
+    private static final String SUBNET_ID_PREFIX = "subnet-";
     private static final String CREATOR = "useremailaddress";
     private Schema inputJsonSchema;
     @Autowired
@@ -258,17 +259,20 @@ public class DataPullRequestProcessor implements DataPullClientService {
             log.debug("runDataPull <- return");
     }
 
-    List<String> rotateSubnets(){
+    synchronized List<String> rotateSubnets(){
 
         if(subnets.isEmpty()){
             subnets= getSubnet();
+            if (subnets.isEmpty()) {
+                log.warn("No valid default subnet IDs are configured for datapull.api.application_subnet_[1-3].");
+            }
         }else{
             List<String> subnetIds_shuffled = new ArrayList<>(subnets);
             Collections.rotate(subnetIds_shuffled, 1);
             subnets.clear();
             subnets.addAll(subnetIds_shuffled);
         }
-        return subnets;
+        return new ArrayList<>(subnets);
     }
 
    Map<String,List<DescribeStepRequest>> getStepForPipeline(){
@@ -277,18 +281,16 @@ public class DataPullRequestProcessor implements DataPullClientService {
     public List<String> getSubnet(){
         final DataPullProperties dataPullProperties = this.config.getDataPullProperties();
 
-        List<String> subnetIds = new ArrayList<>();
-
-        subnetIds.add(dataPullProperties.getApplicationSubnet1());
-
-        if (StringUtils.isNotBlank(dataPullProperties.getApplicationSubnet2())) {
-            subnetIds.add(dataPullProperties.getApplicationSubnet2());
-        }
-
-        if (StringUtils.isNotBlank(dataPullProperties.getApplicationSubnet3())) {
-            subnetIds.add(dataPullProperties.getApplicationSubnet3());
-        }
-        return  subnetIds;
+        return Arrays.asList(
+                        dataPullProperties.getApplicationSubnet1(),
+                        dataPullProperties.getApplicationSubnet2(),
+                        dataPullProperties.getApplicationSubnet3())
+                .stream()
+                .filter(StringUtils::isNotBlank)
+                .map(String::trim)
+                .filter(subnetId -> subnetId.startsWith(SUBNET_ID_PREFIX))
+                .distinct()
+                .collect(Collectors.toList());
 
     }
     private StringBuilder createBootstrapString(Object[] paths, String bootstrapActionStringFromUser) throws ProcessingException {
