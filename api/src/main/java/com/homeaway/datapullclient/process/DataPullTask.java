@@ -509,10 +509,6 @@ public class DataPullTask implements Runnable {
                 .withInstanceTypeConfigs(workerInstanceTypeConfig)
                 .withTargetOnDemandCapacity(count);
 
-        System.out.println("Printing random subnet : " + subnets);
-
-        System.out.println("Printing selected subnet-ID for EMR cluster creation : " +  subnets.get(0));
-
         final String masterSG = emrProperties.getEmrSecurityGroupMaster();
         final String slaveSG = emrProperties.getEmrSecurityGroupSlave();
         final String serviceAccesss = emrProperties.getEmrSecurityGroupServiceAccess();
@@ -523,12 +519,8 @@ public class DataPullTask implements Runnable {
         final String serviceAccessSecurityGroup = Objects.toString(
                 this.clusterProperties.getServiceAccessSecurityGroup(), serviceAccesss != null ? serviceAccesss : "");
 
-        if(StringUtils.isNotBlank(clusterProperties.getSubnetId())){
-            subnets.add(0,clusterProperties.getSubnetId());
-        }
-
 //      Introducing below logic to address null and invalid subnet issue
-        String getSubnetId = clusterProperties.getSubnetId();
+        String getSubnetId = StringUtils.trimToNull(clusterProperties.getSubnetId());
         String finalSubnetId;
 
 
@@ -542,13 +534,10 @@ public class DataPullTask implements Runnable {
                 System.out.println("The user either provided a NULL value for the subnet or did not specify subnet in the payload. Hence, the default subnet pool will be used for EMR creation.");
             }
 
-            Set<String> subnetsDeduped = new LinkedHashSet<>(subnets);
-            subnets.clear();
-            subnets.addAll(subnetsDeduped);
-
-            finalSubnetId = subnets.get(0);
+            finalSubnetId = getNextDefaultSubnet();
             System.out.println("EMR cluster will be created using a subnet from the default subnet pool: " + finalSubnetId);
         }
+        System.out.println("Printing selected subnet-ID for EMR cluster creation : " + finalSubnetId);
 
         final JobFlowInstancesConfig jobConfig = new JobFlowInstancesConfig()
                 .withEc2SubnetIds(finalSubnetId)
@@ -574,6 +563,29 @@ public class DataPullTask implements Runnable {
             jobConfig.withInstanceFleets(workerInstanceFleetConfig);
         }
         return jobConfig;
+    }
+
+    private String getNextDefaultSubnet() {
+        synchronized (subnets) {
+            List<String> defaultSubnets = subnets.stream()
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::trim)
+                    .filter(subnetId -> subnetId.startsWith("subnet-"))
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            System.out.println("Printing random subnet : " + defaultSubnets);
+
+            if (defaultSubnets.isEmpty()) {
+                throw new IllegalStateException("No valid default subnet is configured for datapull.api.application_subnet_[1-3].");
+            }
+
+            String selectedSubnet = defaultSubnets.get(0);
+            Collections.rotate(defaultSubnets, 1);
+            subnets.clear();
+            subnets.addAll(defaultSubnets);
+            return selectedSubnet;
+        }
     }
 
     private void addTagsToEMRCluster() {
